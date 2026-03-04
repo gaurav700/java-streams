@@ -41,7 +41,7 @@ public class Main {
                 new Employee("Rahul","HR",45000,32),
                 new Employee("Ravi","IT",75000,30),
                 new Employee("Ankit","Finance",50000,26),
-                new Employee("Gaurav","IT",90000,29),
+                new Employee("NamaN","IT",90000,29),
                 new Employee("Rohan","Media",40000,35)
         );
 
@@ -281,56 +281,77 @@ public class Main {
         */
 
         // 61. Group employees by department
-
+        System.out.println(employees.stream().collect(Collectors.groupingBy(item-> item.getDepartment())));
         // 62. Find highest salary per department
         // TIP: groupingBy + maxBy
-
+        System.out.println(employees.stream().collect(Collectors.groupingBy(Employee::getDepartment, Collectors.maxBy(Comparator.comparingInt(Employee::getSalary)))));
         // 63. Find total salary per department
-
+        System.out.println(employees.stream().collect(Collectors.groupingBy(Employee::getDepartment, Collectors.summingInt(Employee::getSalary))));
         // 64. Partition employees by age > 30
-
+        System.out.println(employees.stream().collect(Collectors.partitioningBy(emp-> emp.getAge() > 30)));
         // 65. Sort employees by salary descending
-
+        System.out.println(employees.stream().sorted(Comparator.comparingInt(Employee::getSalary).reversed()).toList());
         // 66. Find second highest paid employee
-
+        System.out.println(employees.stream().sorted(Comparator.comparingInt(Employee::getSalary).reversed()).skip(1).limit(1).collect(Collectors.toList()));
         // 67. Group employees by department and count
-
+        System.out.println(employees.stream().collect(Collectors.groupingBy(Employee::getDepartment, Collectors.counting())));
         // 68. Convert employees to Map<name, salary>
-
+        System.out.println(employees.stream().collect(Collectors.toMap(Employee::getName, Employee::getSalary)));
         // 69. Get list of employees sorted by age
-
+        System.out.println(employees.stream().sorted(Comparator.comparingInt(Employee::getAge)).map(Employee::getName).collect(Collectors.toList()));
         // 70. Get departments sorted by total salary descending
-
+        System.out.println(employees.stream().sorted(Comparator.comparingInt(Employee::getSalary).reversed()).map(Employee::getDepartment).collect(Collectors.toList()));
         // 71. Find department with highest average salary
-
+        System.out.println(
+                employees.stream()
+                        .collect(Collectors.groupingBy(
+                                Employee::getDepartment,
+                                Collectors.averagingInt(Employee::getSalary)
+                        ))
+        );
         // 72. Nested grouping: department -> age group (<30, >=30)
-
+        System.out.println(employees.stream().collect(Collectors.groupingBy(Employee::getDepartment, Collectors.groupingBy(emp-> emp.getAge()>=30 ? ">=30" : "<30"))));
         // 73. Find employees whose name starts with 'A'
-
+        System.out.println(employees.stream().map(Employee::getName).filter(name-> name.toUpperCase().startsWith("A")).collect(Collectors.toList()));
         // 74. Get top 2 youngest employees
-
+        System.out.println(employees.stream().sorted(Comparator.comparingInt(Employee::getAge)).limit(2).toList());
         // 75. Get distinct departments
-
+        System.out.println(employees.stream().map(Employee::getDepartment).distinct().toList());
         // 76. Find employee names sorted alphabetically
-
+        System.out.println(employees.stream().map(Employee::getName).toList());
         // 77. Check if any employee salary > 100000
-
+        System.out.println(employees.stream().map(Employee::getSalary).anyMatch(salary-> salary>100000));
         // 78. Find employees older than average age
-
+        System.out.println(employees.stream()
+                .filter(employee -> employee.getAge()>employees.stream().collect(Collectors.averagingInt(Employee::getAge)))
+                .toList());
         // 79. Create custom comparator to sort by name then salary
-
+        System.out.println(employees.stream().sorted(Comparator.comparing(Employee::getName).thenComparing(Employee::getSalary)).toList());
         // 80. Group employees by salary range (40k-60k, 60k+)
-
+        System.out.println(
+                employees.stream()
+                        .collect(Collectors.groupingBy(
+                                emp -> emp.getSalary() > 60000 ? "60k+" : "40k-60k"
+                        ))
+        );
         // 81. Find first non-repeated character in string "swiss"
-
+        System.out.println();
         // 82. Find all palindromes from list
-
+        System.out.println(
+                employees.stream()
+                        .map(Employee::getName)
+                        .filter(name -> new StringBuilder(name).reverse().toString().equalsIgnoreCase(name))
+                        .toList()
+        );
         // 83. Check if two strings are anagrams using streams
-
+        String str1 = "apple";
+        String str2 = "aplpe";
+        System.out.println(Arrays.equals(str1.chars().sorted().toArray(), str2.chars().sorted().toArray()));
         // 84. Create frequency map of words in sentence
-
+         String sentence = "apple banana apple orange banana apple orange";
+        System.out.println(Arrays.stream(sentence.split(" ")).collect(Collectors.groupingBy(word-> word, Collectors.counting())));
         // 85. Flatten nested employee lists
-
+        System.out.println();
 
 
         /*
