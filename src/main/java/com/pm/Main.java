@@ -1,6 +1,7 @@
 package com.pm;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.*;
 import java.util.stream.*;
 
@@ -335,7 +336,16 @@ public class Main {
                         ))
         );
         // 81. Find first non-repeated character in string "swiss"
-        System.out.println();
+        String str = "swiss";
+        System.out.println(
+                str.chars().mapToObj(c-> (char) c)
+                        .collect(Collectors.groupingBy(c-> c, LinkedHashMap::new, Collectors.counting()))
+                        .entrySet().stream()
+                        .filter(e-> e.getValue() == 1)
+                        .map(Map.Entry::getKey)
+                        .findFirst()
+                        .orElse(null)
+        );
         // 82. Find all palindromes from list
         System.out.println(
                 employees.stream()
@@ -351,7 +361,16 @@ public class Main {
          String sentence = "apple banana apple orange banana apple orange";
         System.out.println(Arrays.stream(sentence.split(" ")).collect(Collectors.groupingBy(word-> word, Collectors.counting())));
         // 85. Flatten nested employee lists
-        System.out.println();
+        List<List<Employee>> nestedEmployees = List.of(
+                employees.subList(0,2),
+                employees.subList(2,4),
+                employees.subList(4,6)
+        );
+        System.out.println(
+                nestedEmployees.stream()
+                        .flatMap(List::stream)
+                        .toList()
+        );
 
 
         /*
@@ -362,31 +381,128 @@ public class Main {
 
         // 86. Use parallel stream to sum numbers
 
+        System.out.println((Integer) numbers.stream().parallel().mapToInt(num -> num).sum());
+
         // 87. Compare sequential vs parallel execution time
+//        List<Integer> number = IntStream.rangeClosed(1, 100_000_000)
+//                .boxed()
+//                .toList();
+//        long startSeq = System.currentTimeMillis();
+//        int seqSum = number.stream()
+//                .mapToInt(Integer::intValue)
+//                .sum();
+//        long endSeq = System.currentTimeMillis();
+//
+//        long startPar = System.currentTimeMillis();
+//        int parSum = number.parallelStream()
+//                .mapToInt(Integer::intValue)
+//                .sum();
+//        long endPar = System.currentTimeMillis();
+//        System.out.println("Sequential time: " + (endSeq - startSeq));
+//        System.out.println("Parallel time: " + (endPar - startPar));
 
         // 88. Create custom collector to collect into LinkedList
+        LinkedList<Integer> list =
+                numbers.stream()
+                        .collect(Collector.of(
+                                LinkedList<Integer>::new,
+                                LinkedList::add,
+                                (l1, l2) -> {
+                                    l1.addAll(l2);
+                                    return l1;
+                                }
+                        ));
+
+        System.out.println(list);
 
         // 89. Use reduce to concatenate names
+        System.out.println(names.stream().reduce("", String::concat).toString());
 
         // 90. Use collectingAndThen to make unmodifiable list
+        List<Integer> list1 =
+                numbers.stream()
+                        .collect(Collectors.collectingAndThen(
+                                Collectors.toList(),
+                                Collections::unmodifiableList
+                        ));
+        System.out.println(list1);
 
         // 91. Use teeing collector (Java 12+) to get sum and average together
+        record Stats(int sum, double average) {}
+        Stats result =
+                numbers.stream()
+                        .collect(Collectors.teeing(
+                                Collectors.summingInt(Integer::intValue),
+                                Collectors.averagingInt(Integer::intValue),
+                                Stats::new
+                        ));
+        System.out.println(result);
 
         // 92. Convert stream to primitive stream and back
+        List<Integer> result3 =
+                numbers.stream()
+                        .mapToInt(Integer::intValue)
+                        .boxed()
+                        .toList();
+
+        System.out.println(result3);
 
         // 93. Find max difference between any two numbers
+        IntSummaryStatistics stats = numbers.stream().mapToInt(Integer::intValue).summaryStatistics();
+        int maxDiff = stats.getMax() - stats.getMin();
+        System.out.println(maxDiff);
 
         // 94. Sliding window sum of size 3 using streams
+        System.out.println(
+                IntStream.range(0, numbers.size() - 2)
+                        .map(i -> numbers.get(i) + numbers.get(i + 1) + numbers.get(i + 2))
+                        .boxed()
+                        .toList()
+        );
 
         // 95. Find running total using streams
+        AtomicInteger sum = new AtomicInteger(0);
+        System.out.println(numbers.stream().map(sum::addAndGet).toList());
 
         // 96. Create Map<Department, List<EmployeeNamesSortedBySalary>>
-
+        System.out.println(
+                employees.stream()
+                        .collect(Collectors.groupingBy(
+                                Employee::getDepartment,
+                                Collectors.collectingAndThen(
+                                        Collectors.toList(),
+                                        list2 -> list2.stream()
+                                                .sorted(Comparator.comparingInt(Employee::getSalary))
+                                                .map(Employee::getName)
+                                                .toList()
+                                )
+                        ))
+        );
         // 97. Multi-level grouping: dept -> salary -> list of employees
+        System.out.println(
+                employees.stream()
+                        .collect(Collectors.groupingBy(
+                                Employee::getDepartment,
+                                Collectors.groupingBy(Employee::getSalary)
+                        ))
+        );
 
         // 98. Find top 3 highest paid employees per department
-
+        System.out.println(
+                employees.stream()
+                        .collect(Collectors.groupingBy(
+                                Employee::getDepartment,
+                                Collectors.collectingAndThen(
+                                        Collectors.toList(),
+                                        list3 -> list3.stream()
+                                                .sorted(Comparator.comparingInt(Employee::getSalary).reversed())
+                                                .limit(3)
+                                                .toList()
+                                )
+                        ))
+        );
         // 99. Create immutable map of name -> salary
+        System.out.println(employees.stream().collect(Collectors.toUnmodifiableMap(Employee::getName, Employee::getSalary)));
 
         // 100. Complex:
         // From employees:
@@ -394,6 +510,11 @@ public class Main {
         // - compute total salary
         // - sort departments by total salary descending
         // - return top department
-
+        System.out.println(employees.stream()
+                .collect(Collectors.groupingBy(
+                        Employee::getDepartment,
+                        Collectors.summingInt(Employee::getSalary)
+                ))
+                .entrySet().stream().max(Map.Entry.<String, Integer>comparingByValue()).orElseThrow());
     }
 }
